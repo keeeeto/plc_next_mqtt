@@ -8,6 +8,7 @@ from time import sleep
 class Mqtt_Tag:
 
     productlist = []
+    flag = 0
 
     def __init__(self, adress, port):
         self.broker_adress = adress
@@ -42,6 +43,7 @@ class Mqtt_Tag:
 
     def CallProductCode(self, product_code):  # product_code is str
         self.client.publish("mqtt_tag/buzzer_code", product_code)
+        self.flag = 1  # on call
 
     def RegisterProductCode(self, msg):
         if ("mqtt_tag/alive/" in msg.topic):
@@ -66,22 +68,30 @@ class Mqtt_Tag:
                         if (topic_name in self.productlist[i]):
                             self.productlist[i][1] = msg.payload
                             break
-            print(self.productlist)
+            # print(self.productlist)
 
     def CheckFinishTag(self, msg):
         if ("mqtt_tag/finish_tag" in msg.topic):
             self.CallProductCode("")
+            self.flag = 0  # end call event
+
+    def GetCallState(self):
+        return self.flag
+
+    def SetCallState(self, flag):
+        self.flag = flag
 
 
 if __name__ == '__main__':          # importされないときだけmain()を呼ぶ
-    tag = Mqtt_Tag("192.168.11.3", 1883)
+    # tag = Mqtt_Tag("mqtt-tag-server", 1883)
+    tag = Mqtt_Tag("192.168.10.2", 51883)
     tag.Mqtt_start()
     # tag.CallProductCode("255")
     while True:
         # tag.CallProductCode("255")
         # sleep(1)
 
-        # tag.CallProductCode(str(input("Enter ProductCode")))
+        tag.CallProductCode(str(input("Enter ProductCode")))
 
         # plist = [["255", 5], ["244", 6]]
         # print("255" in plist[0])
